@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reactivos - LSDTC IPN</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --primary-dark: #1e3a8a;
+            --secondary: #0891b2;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-600: #4b5563;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Header */
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .header-left h1 {
+            color: var(--primary);
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        
+        .header-left p {
+            color: var(--gray-600);
+            font-size: 14px;
+        }
+        
+        .header-right {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* Tabs Navigation */
+        .tabs {
+            background: white;
+            padding: 10px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            color: var(--gray-600);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+            flex: 1;
+        }
+        
+        .tab:hover {
+            background: var(--gray-100);
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3);
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Dashboard Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        
+        .stat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: var(--gray-600);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 20px;
+        }
+        
+        /* Search and Controls */
+        .controls-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+        
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-600);
+        }
+        
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--gray-200);
+            background: white;
+            color: var(--gray-600);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .view-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .view-btn {
+            padding: 10px 15px;
+            border: 2px solid var(--gray-200);
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .view-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .sort-select {
+            padding: 10px 15px;
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        /* Grid View */
+        .reactivos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .etiqueta {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .etiqueta:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+        
+        .etiqueta-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--gray-100);
+        }
+        
+        .etiqueta-codigo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .estado-badge {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .estado-lleno { background: #d1fae5; color: #065f46; }
+        .estado-medio { background: #fef3c7; color: #92400e; }
+        .estado-casi-vacio { background: #fed7aa; color: #9a3412; }
+        .estado-vacio { background: #fee2e2; color: #991b1b; }
+        .estado-nuevo { background: #dbeafe; color: #1e40af; }
+        
+        .etiqueta-nombre {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+        
+        .etiqueta-producto {
+            font-size: 13px;
+            color: var(--gray-600);
+            font-family: 'Courier New', monospace;
+            background: var(--gray-50);
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        
+        .etiqueta-ubicacion {
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .etiqueta-ubicacion-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .etiqueta-ubicacion-valor {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        .etiqueta-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 10px;
+            border-top: 1px solid var(--gray-200);
+            font-size: 11px;
+            color: var(--gray-600);
+        }
+        
+        /* Table View */
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+        }
+        
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid var(--gray-200);
+            font-size: 14px;
+        }
+        
+        tbody tr:hover {
+            background: var(--gray-50);
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 64, 175, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body { background: white; padding: 10mm; }
+            .header-right, .tabs, .controls-section, .stats-grid, .charts-grid { display: none !important; }
+            .reactivos-grid { grid-template-columns: repeat(3, 1fr); gap: 5mm; }
+            .etiqueta { box-shadow: none; border: 2px solid #000; page-break-inside: avoid; }
+        }
+        
+        @media (max-width: 768px) {
+            .reactivos-grid { grid-template-columns: 1fr; }
+            .charts-grid { grid-template-columns: 1fr; }
+            .tabs { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>🧪 Sistema de Gestión de Reactivos</h1>
+                <p>Laboratorio de Sistemas para Diagnóstico y Tratamiento de Cáncer - IPN</p>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-secondary" onclick="exportarDatos()">📥 Exportar</button>
+                <button class="btn btn-primary" onclick="window.print()">🖨️ Imprimir</button>
+            </div>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="cambiarTab('dashboard')">📊 Dashboard</button>
+            <button class="tab" onclick="cambiarTab('inventario')">📦 Inventario</button>
+            <button class="tab" onclick="cambiarTab('alertas')">⚠️ Alertas</button>
+        </div>
+        
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon" style="background: #dbeafe;">📦</div>
+                    </div>
+                    <div class="stat-value" id="totalReactivos">0</div>
+                    <div class="stat-label">Total Reactivos</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon" style="background: #d1fae5;">✅</div>
+                    </div>
+                    <div class="stat-value" id="reactivosLlenos">0</div>
+                    <div class="stat-label">Llenos / Nuevos</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon" style="background: #fef3c7;">⚡</div>
+                    </div>
+                    <div class="stat-value" id="reactivosMedios">0</div>
+                    <div class="stat-label">Nivel Medio</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon" style="background: #fee2e2;">⚠️</div>
+                    </div>
+                    <div class="stat-value" id="reactivosAlertas">0</div>
+                    <div class="stat-label">Requieren Atención</div>
+                </div>
+            </div>
+            
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">Distribución por Estado</div>
+                    <canvas id="estadoChart"></canvas>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-title">Reactivos por Ubicación</div>
+                    <canvas id="ubicacionChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <div class="chart-title">Distribución por Mueble</div>
+                <canvas id="muebleChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Inventario Tab -->
+        <div id="inventario" class="tab-content">
+            <div class="controls-section">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Buscar por código, nombre, producto o ubicación...">
+                    <span class="search-icon">🔍</span>
+                </div>
+                
+                <div class="filters">
+                    <button class="filter-btn active" onclick="filtrarPor('todos', event)">Todos</button>
+                    <button class="filter-btn" onclick="filtrarPor('Estante 1', event)">Estante 1</button>
+                    <button class="filter-btn" onclick="filtrarPor('Oficina', event)">Oficina</button>
+                    <button class="filter-btn" onclick="filtrarPor('Islas', event)">Islas</button>
+                    <button class="filter-btn" onclick="filtrarPor('Refrigeracion', event)">Refrigeración</button>
+                    <button class="filter-btn" onclick="filtrarPor('Liquido', event)">Líquidos</button>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div class="view-controls">
+                        <button class="view-btn active" onclick="cambiarVista('grid')">🔲 Tarjetas</button>
+                        <button class="view-btn" onclick="cambiarVista('table')">📋 Tabla</button>
+                        <select class="sort-select" id="sortSelect" onchange="ordenarReactivos()">
+                            <option value="codigo">Ordenar por Código</option>
+                            <option value="nombre">Ordenar por Nombre</option>
+                            <option value="ubicacion">Ordenar por Ubicación</option>
+                            <option value="estado">Ordenar por Estado</option>
+                        </select>
+                    </div>
+                    <div style="color: var(--gray-600); font-size: 14px;" id="statsText">Cargando...</div>
+                </div>
+            </div>
+            
+            <div id="gridView">
+                <div class="reactivos-grid" id="gridEtiquetas"></div>
+            </div>
+            
+            <div id="tableView" style="display: none;">
+                <div class="table-container">
+                    <table id="tableReactivos">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Producto</th>
+                                <th>Ubicación</th>
+                                <th>Mueble</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Alertas Tab -->
+        <div id="alertas" class="tab-content">
+            <div class="stats-grid" style="margin-bottom: 30px;">
+                <div class="stat-card" style="border-left: 4px solid #f59e0b;">
+                    <h3 style="color: #f59e0b; margin-bottom: 10px;">⚠️ Casi Vacíos</h3>
+                    <div class="stat-value" id="alertaCasiVacios">0</div>
+                </div>
+                <div class="stat-card" style="border-left: 4px solid #ef4444;">
+                    <h3 style="color: #ef4444; margin-bottom: 10px;">❌ Vacíos / No están</h3>
+                    <div class="stat-value" id="alertaVacios">0</div>
+                </div>
+            </div>
+            
+            <div class="reactivos-grid" id="gridAlertas"></div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'reactivos-ipn-data';
+        
+        let reactivos = [
+            {codigo:'K1',nombre:'Iron Powder',producto:'7439896-250gr',ubicacion:'Estante 1',mueble:'5',estado:'Nuevo'},
+            {codigo:'K2',nombre:'Chloroplatinic Acid Hexahydrate',producto:'-',ubicacion:'Oficina 1',mueble:'5',estado:'Nuevo'},
+            {codigo:'K3',nombre:'Copper (I) Chloride',producto:'212946-25gr',ubicacion:'Estante 1',mueble:'5',estado:'Nuevo'},
+            {codigo:'K4',nombre:'Chloroplatinic Acid Hexahydrate',producto:'-',ubicacion:'Oficina 1',mueble:'5',estado:'Nuevo'},
+            {codigo:'K5',nombre:'Nitrato de Plata',producto:'209139-25gr',ubicacion:'Estante 1',mueble:'5',estado:'Casi vacio'},
+            {codigo:'K6',nombre:'Conductive Silver Printing Ink',producto:'791873-10gr',ubicacion:'Estante 1',mueble:'5',estado:'Lleno'},
+            {codigo:'K7',nombre:'Gold (III) Chloride Trihydrate',producto:'-',ubicacion:'Oficina 1',mueble:'5',estado:'Nuevo'},
+            {codigo:'K8',nombre:'Chloroplatinic Acid Hexahydrate',producto:'-',ubicacion:'Oficina 1',mueble:'5',estado:'No esta'},
+            {codigo:'L101',nombre:'Sulfato de Amonio',producto:'-',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'L1010',nombre:'Cloruro de Sodio',producto:'S3014-500gr',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'L1011',nombre:'Iron (III) Chloride Hexahydrate',producto:'236489-500gr',ubicacion:'Estante 1',mueble:'4',estado:'Medio'},
+            {codigo:'L1012',nombre:'Bismuth (III) Oxide',producto:'223891-500gr',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'L1013',nombre:'Hexamethylenetetramine',producto:'398160-250gr',ubicacion:'Estante 1',mueble:'4',estado:'Casi vacio'},
+            {codigo:'L1014',nombre:'Carbonato de Sodio',producto:'No tiene, 500gr',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'L1015',nombre:'Lanthanum (III) Oxide',producto:'011172-500Gr',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'L1016',nombre:'Copper (II) Sulfate Anhydrous',producto:'7758987-500Gr',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'L1017',nombre:'Ácido Cítrico',producto:'0110-500gr',ubicacion:'Estante 1',mueble:'4',estado:'Medio'},
+            {codigo:'L1018',nombre:'Cloruro de Sodio',producto:'1002371201-1Kg',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'L1019',nombre:'Sodium Nitrate',producto:'S5506-500gr',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'L102',nombre:'Cloruro de Potasio',producto:'-',ubicacion:'Estante 1',mueble:'4',estado:'Medio'},
+            {codigo:'L1020',nombre:'Mowiol (56-98)',producto:'10851-250gr',ubicacion:'Estante 1',mueble:'4',estado:'Medio'},
+            {codigo:'L1021',nombre:'Mowiol (4-98)',producto:'81382-250gr',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'L1022',nombre:'Polyvinylpyrrolidone',producto:'PVP40-100gr',ubicacion:'Estante 1',mueble:'4',estado:'Nuevo'},
+            {codigo:'L1023',nombre:'Sulfato de Potasio Gran.',producto:'63861-500gr',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'L1024',nombre:'Sodium Hydroxide',producto:'S5881-500gr',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'L103',nombre:'Sulfato Cúprico Pentahidrato',producto:'-',ubicacion:'Estante 1',mueble:'4',estado:'Medio'},
+            {codigo:'L104',nombre:'Cloruro de Calcio Anhidro',producto:'-',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'L105',nombre:'Sulfato de Calcio Anhidro',producto:'-',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'L106',nombre:'Calcium Nitrate',producto:'-',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'L107',nombre:'Nitrito de Sodio',producto:'378001-500gr',ubicacion:'Estante 1',mueble:'4',estado:'Medio'},
+            {codigo:'L108',nombre:'Oxalic Acid',producto:'194131-250gr',ubicacion:'Estante 1',mueble:'4',estado:'Medio'},
+            {codigo:'L109',nombre:'Sodium Citrate Tribasic Dihydrate',producto:'S4641-500gr',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'L11',nombre:'Gallium',producto:'772631-5g',ubicacion:'Estante 1',mueble:'3',estado:'Medio'},
+            {codigo:'L110',nombre:'Potassium Hexachloroplatinate (IV)',producto:'-',ubicacion:'Estante 1',mueble:'3',estado:'Medio'},
+            {codigo:'L11-1',nombre:'Chitosan',producto:'448869-250gr',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'L1-11',nombre:'Platinum (II) Acetylacetonate 97%',producto:'-',ubicacion:'Estante 1',mueble:'3',estado:'Lleno'},
+            {codigo:'L11-2',nombre:'Calcium Carbonate',producto:'011403-500gr',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'L1-12',nombre:'Potassium TetraChloroPalladate (II)',producto:'-',ubicacion:'Estante 1',mueble:'3',estado:'Lleno'},
+            {codigo:'L113',nombre:'Titanium (IV) Oxide',producto:'232033-500gr',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'L1-13',nombre:'Ytterbium (III) Chloride Hexahydrate',producto:'-',ubicacion:'Estante 1',mueble:'3',estado:'Lleno'},
+            {codigo:'L11-4',nombre:'Trisodium Citrate Dihydrate',producto:'S1804-500gr',ubicacion:'Estante 1',mueble:'4',estado:'Medio'},
+            {codigo:'L1-14',nombre:'Selenourea',producto:'-',ubicacion:'Estante 1',mueble:'3',estado:'Casi vacio'},
+            {codigo:'L12',nombre:'Selenium',producto:'209643-50g',ubicacion:'Estante 1',mueble:'3',estado:'Lleno'},
+            {codigo:'L121',nombre:'Sodium Borohydride',producto:'452882-25gr',ubicacion:'Estante 1',mueble:'4',estado:'Medio'},
+            {codigo:'L122',nombre:'Titanium (IV) Chloride',producto:'208566-200gr',ubicacion:'Estante 1',mueble:'4',estado:'Nuevo'},
+            {codigo:'L123',nombre:'Zinc Powder',producto:'324930-50gr',ubicacion:'Estante 1',mueble:'4',estado:'Nuevo'},
+            {codigo:'L124',nombre:'Gallium (III) Chloride',producto:'427128-5gr',ubicacion:'Estante 1',mueble:'4',estado:'Nuevo'},
+            {codigo:'L125',nombre:'Neodymium (III) Chloride Puro',producto:'449946-5gr',ubicacion:'Estante 1',mueble:'4',estado:'Nuevo'},
+            {codigo:'L13',nombre:'Samarium (III) Oxide',producto:'228672-10g',ubicacion:'Estante 1',mueble:'3',estado:'Medio'},
+            {codigo:'L131',nombre:'Ammonium Nitrate',producto:'07905-2.5Kg',ubicacion:'Estante 1',mueble:'5',estado:'Lleno'},
+            {codigo:'L132',nombre:'Sodium',producto:'71172-500gr',ubicacion:'Estante 1',mueble:'5',estado:'Lleno'},
+            {codigo:'L14',nombre:'3-Mercaptobenzoic Acid',producto:'451436-1g',ubicacion:'Estante 1',mueble:'3',estado:'Medio'},
+            {codigo:'L15',nombre:'4-Mercaptobenzonic Acid',producto:'706329-1g',ubicacion:'Estante 1',mueble:'3',estado:'Lleno'},
+            {codigo:'L16',nombre:'Chromium (II) Chloride',producto:'244805-5g',ubicacion:'Estante 1',mueble:'3',estado:'Lleno'},
+            {codigo:'L17',nombre:'Ruthenium (III) Chloride',producto:'208523-10g',ubicacion:'Estante 1',mueble:'3',estado:'Lleno'},
+            {codigo:'L18',nombre:'Ytterbium (III) Oxide',producto:'246999-10g',ubicacion:'Estante 1',mueble:'3',estado:'Lleno'},
+            {codigo:'L19',nombre:'Gallium (III) Nitrate Hydrate',producto:'289892-5g',ubicacion:'Estante 1',mueble:'3',estado:'Medio'},
+            {codigo:'L78',nombre:'L-Cysteine',producto:'188149-100gr',ubicacion:'Refrigeracion',mueble:'1',estado:'Medio'},
+            {codigo:'R612',nombre:'Sodium Hydroxide',producto:'-',ubicacion:'Islas 1',mueble:'R6',estado:'Lleno'},
+            {codigo:'R65',nombre:'3-Aminobenzene Sulfonic Acid',producto:'-',ubicacion:'Islas 1',mueble:'R6',estado:'Lleno'},
+            {codigo:'R66',nombre:'Sodium Dodecylsulfate',producto:'-',ubicacion:'Islas 1',mueble:'R6',estado:'Lleno'},
+            {codigo:'R67',nombre:'Polysodium 4-styrenesulfonate',producto:'-',ubicacion:'Islas 1',mueble:'R6',estado:'Lleno'},
+            {codigo:'R68',nombre:'Copper(II) Chloride',producto:'-',ubicacion:'Islas 1',mueble:'R6',estado:'Medio'},
+            {codigo:'R69',nombre:'Oxido de Zinc',producto:'-',ubicacion:'Islas 1',mueble:'R6',estado:'Lleno'},
+            {codigo:'LL1',nombre:'Zinc Granular',producto:'A1183380903-1Kg',ubicacion:'Estante 1',mueble:'4',estado:'Lleno'},
+            {codigo:'LL10',nombre:'Zinc Oxide Powder',producto:'205532-1Kg',ubicacion:'Estante 1',mueble:'2',estado:'Casi vacio'},
+            {codigo:'C1',nombre:'Acetona',producto:'0025-1L',ubicacion:'Liquido 1',mueble:'3',estado:'Medio'},
+            {codigo:'C10',nombre:'Nitric Acid',producto:'438073-2.5L',ubicacion:'Liquido 1',mueble:'3',estado:'Por terminar'},
+            {codigo:'C6',nombre:'Xilenos',producto:'9490-03-4l',ubicacion:'Liquido 2',mueble:'3',estado:'Lleno'},
+            {codigo:'C17',nombre:'Tolueno',producto:'2625-1L',ubicacion:'Liquido 2',mueble:'3',estado:'Lleno'},
+            {codigo:'C3',nombre:'Metanol',producto:'9070-03-4L',ubicacion:'Liquido 1',mueble:'3',estado:'Lleno'},
+            {codigo:'C18',nombre:'Peróxido de Hidrógeno 30%',producto:'2189-01-500mL',ubicacion:'Liquido 4',mueble:'3',estado:'Lleno'}
+        ];
+
+        let reactivosFiltrados = reactivos.slice();
+        let vistaActual = 'grid';
+        let charts = {};
+        
+        // Cargar datos almacenados
+        async function cargarDatos() {
+            try {
+                const stored = await window.storage.get(STORAGE_KEY);
+                if (stored && stored.value) {
+                    reactivos = JSON.parse(stored.value);
+                    reactivosFiltrados = reactivos.slice();
+                }
+            } catch (error) {
+                console.log('No hay datos previos o error al cargar:', error);
+            }
+            inicializar();
+        }
+        
+        // Guardar datos
+        async function guardarDatos() {
+            try {
+                await window.storage.set(STORAGE_KEY, JSON.stringify(reactivos));
+            } catch (error) {
+                console.error('Error al guardar:', error);
+            }
+        }
+        
+        function normalizeEstado(estado) {
+            const map = {
+                'Lleno': 'lleno',
+                'Medio': 'medio',
+                'Casi vacio': 'casi-vacio',
+                'Vacio': 'vacio',
+                'Nuevo': 'nuevo',
+                'Por terminar': 'casi-vacio',
+                'No esta': 'vacio'
+            };
+            return map[estado] || 'medio';
+        }
+        
+        function renderGrid(lista) {
+            const grid = document.getElementById('gridEtiquetas');
+            let html = '';
+            lista.forEach(r => {
+                html += `
+                    <div class="etiqueta">
+                        <div class="etiqueta-header">
+                            <span class="etiqueta-codigo">${r.codigo}</span>
+                            <span class="estado-badge estado-${normalizeEstado(r.estado)}">${r.estado}</span>
+                        </div>
+                        <div class="etiqueta-nombre">${r.nombre}</div>
+                        <div class="etiqueta-producto">Cód: ${r.producto}</div>
+                        <div class="etiqueta-ubicacion">
+                            <div class="etiqueta-ubicacion-label">Ubicación</div>
+                            <div class="etiqueta-ubicacion-valor">${r.ubicacion} - Rep. ${r.mueble}</div>
+                        </div>
+                        <div class="etiqueta-footer">
+                            <span>LSDTC - IPN</span>
+                        </div>
+                    </div>
+                `;
+            });
+            grid.innerHTML = html;
+            
+            document.getElementById('statsText').innerHTML = 
+                `Mostrando <strong>${lista.length}</strong> de <strong>${reactivos.length}</strong> reactivos`;
+        }
+        
+        function renderTable(lista) {
+            const tbody = document.getElementById('tableBody');
+            let html = '';
+            lista.forEach(r => {
+                html += `
+                    <tr>
+                        <td><strong>${r.codigo}</strong></td>
+                        <td>${r.nombre}</td>
+                        <td><code>${r.producto}</code></td>
+                        <td>${r.ubicacion}</td>
+                        <td>${r.mueble}</td>
+                        <td><span class="estado-badge estado-${normalizeEstado(r.estado)}">${r.estado}</span></td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+        
+        function actualizarDashboard() {
+            const total = reactivos.length;
+            const llenos = reactivos.filter(r => r.estado === 'Lleno' || r.estado === 'Nuevo').length;
+            const medios = reactivos.filter(r => r.estado === 'Medio').length;
+            const alertas = reactivos.filter(r => 
+                r.estado === 'Casi vacio' || r.estado === 'Vacio' || r.estado === 'No esta' || r.estado === 'Por terminar'
+            ).length;
+            
+            document.getElementById('totalReactivos').textContent = total;
+            document.getElementById('reactivosLlenos').textContent = llenos;
+            document.getElementById('reactivosMedios').textContent = medios;
+            document.getElementById('reactivosAlertas').textContent = alertas;
+            
+            // Alertas detalladas
+            const casiVacios = reactivos.filter(r => r.estado === 'Casi vacio' || r.estado === 'Por terminar').length;
+            const vacios = reactivos.filter(r => r.estado === 'Vacio' || r.estado === 'No esta').length;
+            document.getElementById('alertaCasiVacios').textContent = casiVacios;
+            document.getElementById('alertaVacios').textContent = vacios;
+            
+            actualizarGraficas();
+        }
+        
+        function actualizarGraficas() {
+            // Gráfica de estados
+            const estados = {};
+            reactivos.forEach(r => {
+                estados[r.estado] = (estados[r.estado] || 0) + 1;
+            });
+            
+            if (charts.estado) charts.estado.destroy();
+            const ctxEstado = document.getElementById('estadoChart').getContext('2d');
+            charts.estado = new Chart(ctxEstado, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(estados),
+                    datasets: [{
+                        data: Object.values(estados),
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+            
+            // Gráfica de ubicaciones
+            const ubicaciones = {};
+            reactivos.forEach(r => {
+                const ubi = r.ubicacion.split(' ')[0];
+                ubicaciones[ubi] = (ubicaciones[ubi] || 0) + 1;
+            });
+            
+            if (charts.ubicacion) charts.ubicacion.destroy();
+            const ctxUbicacion = document.getElementById('ubicacionChart').getContext('2d');
+            charts.ubicacion = new Chart(ctxUbicacion, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(ubicaciones),
+                    datasets: [{
+                        label: 'Reactivos',
+                        data: Object.values(ubicaciones),
+                        backgroundColor: '#3b82f6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+            
+            // Gráfica de muebles
+            const muebles = {};
+            reactivos.forEach(r => {
+                muebles[`Mueble ${r.mueble}`] = (muebles[`Mueble ${r.mueble}`] || 0) + 1;
+            });
+            
+            if (charts.mueble) charts.mueble.destroy();
+            const ctxMueble = document.getElementById('muebleChart').getContext('2d');
+            charts.mueble = new Chart(ctxMueble, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(muebles),
+                    datasets: [{
+                        label: 'Reactivos por Mueble',
+                        data: Object.values(muebles),
+                        backgroundColor: '#8b5cf6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+        
+        function renderAlertas() {
+            const alertas = reactivos.filter(r => 
+                r.estado === 'Casi vacio' || r.estado === 'Vacio' || 
+                r.estado === 'No esta' || r.estado === 'Por terminar'
+            );
+            
+            const grid = document.getElementById('gridAlertas');
+            if (alertas.length === 0) {
+                grid.innerHTML = '<p style="text-align:center;color:var(--gray-600);padding:40px;">✅ No hay alertas. Todos los reactivos están en buen estado.</p>';
+                return;
+            }
+            
+            let html = '';
+            alertas.forEach(r => {
+                html += `
+                    <div class="etiqueta" style="border-left: 4px solid ${r.estado === 'Vacio' || r.estado === 'No esta' ? '#ef4444' : '#f59e0b'};">
+                        <div class="etiqueta-header">
+                            <span class="etiqueta-codigo">${r.codigo}</span>
+                            <span class="estado-badge estado-${normalizeEstado(r.estado)}">${r.estado}</span>
+                        </div>
+                        <div class="etiqueta-nombre">${r.nombre}</div>
+                        <div class="etiqueta-producto">Cód: ${r.producto}</div>
+                        <div class="etiqueta-ubicacion">
+                            <div class="etiqueta-ubicacion-label">Ubicación</div>
+                            <div class="etiqueta-ubicacion-valor">${r.ubicacion} - Rep. ${r.mueble}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            grid.innerHTML = html;
+        }
+        
+        function cambiarTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab).classList.add('active');
+            
+            if (tab === 'dashboard') {
+                actualizarDashboard();
+            } else if (tab === 'alertas') {
+                renderAlertas();
+            }
+        }
+        
+        function filtrarPor(ubicacion, event) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (ubicacion === 'todos') {
+                reactivosFiltrados = reactivos.slice();
+            } else {
+                reactivosFiltrados = reactivos.filter(r => 
+                    r.ubicacion.toLowerCase().includes(ubicacion.toLowerCase())
+                );
+            }
+            
+            if (vistaActual === 'grid') {
+                renderGrid(reactivosFiltrados);
+            } else {
+                renderTable(reactivosFiltrados);
+            }
+        }
+        
+        function cambiarVista(vista) {
+            vistaActual = vista;
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (vista === 'grid') {
+                document.getElementById('gridView').style.display = 'block';
+                document.getElementById('tableView').style.display = 'none';
+                renderGrid(reactivosFiltrados);
+            } else {
+                document.getElementById('gridView').style.display = 'none';
+                document.getElementById('tableView').style.display = 'block';
+                renderTable(reactivosFiltrados);
+            }
+        }
+        
+        function ordenarReactivos() {
+            const criterio = document.getElementById('sortSelect').value;
+            reactivosFiltrados.sort((a, b) => {
+                if (a[criterio] < b[criterio]) return -1;
+                if (a[criterio] > b[criterio]) return 1;
+                return 0;
+            });
+            
+            if (vistaActual === 'grid') {
+                renderGrid(reactivosFiltrados);
+            } else {
+                renderTable(reactivosFiltrados);
+            }
+        }
+        
+        function exportarDatos() {
+            const csv = 'Código,Nombre,Producto,Ubicación,Mueble,Estado\n' +
+                reactivos.map(r => 
+                    `"${r.codigo}","${r.nombre}","${r.producto}","${r.ubicacion}","${r.mueble}","${r.estado}"`
+                ).join('\n');
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'reactivos-ipn-' + new Date().toISOString().split('T')[0] + '.csv';
+            a.click();
+        }
+        
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase();
+            const filtered = reactivosFiltrados.filter(r =>
+                r.codigo.toLowerCase().includes(term) ||
+                r.nombre.toLowerCase().includes(term) ||
+                r.producto.toLowerCase().includes(term) ||
+                r.ubicacion.toLowerCase().includes(term)
+            );
+            
+            if (vistaActual === 'grid') {
+                renderGrid(filtered);
+            } else {
+                renderTable(filtered);
+            }
+        });
+        
+        function inicializar() {
+            renderGrid(reactivos);
+            actualizarDashboard();
+            renderAlertas();
+        }
+        
+        // Inicializar al cargar
+        if (typeof window.storage !== 'undefined') {
+            cargarDatos();
+        } else {
+            inicializar();
+        }
+    </script>
+</body>
+</html>
